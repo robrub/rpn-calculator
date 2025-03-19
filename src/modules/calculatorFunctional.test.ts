@@ -125,4 +125,51 @@ describe('RPNCalculator Funzionale', () => {
       expect(result).toBe(28);
     });
   });
+
+  describe('Test con mock', () => {
+    test('dovrebbe utilizzare un logger mockato per registrare le operazioni', () => {
+      // Creo un mock per una funzione di logging
+      const mockLogger = jest.fn();
+      
+      // Sovrascrive temporaneamente la funzione originale con il mock
+      const originalConsoleLog = console.log;
+      console.log = mockLogger;
+      
+      // Eseguo le operazioni della calcolatrice
+      let calc = rpnCalc.createCalculator();
+      calc = rpnCalc.pushOperand(calc, 10);
+      calc = rpnCalc.pushOperand(calc, 5);
+      calc = rpnCalc.add(calc);
+      
+      // Verifico che il logger sia stato chiamato il numero corretto di volte
+      expect(mockLogger).toHaveBeenCalledTimes(3);
+      // Verifico che il logger sia stato chiamato con argomenti specifici
+      expect(mockLogger).toHaveBeenCalledWith('Operando inserito:', 10);
+      expect(mockLogger).toHaveBeenCalledWith('Operando inserito:', 5);
+      expect(mockLogger).toHaveBeenCalledWith('Risultato addizione:', 15);
+      
+      // Ripristino la funzione originale
+      console.log = originalConsoleLog;
+    });
+    
+    test('dovrebbe mockare una funzione di notifica esterna', () => {
+      // Creo un mock per un servizio di notifica esterno
+      const mockNotifyService = {
+        sendNotification: jest.fn()
+      };
+      
+      // Svolgo le operazioni sulla calcolatrice
+      let calc = rpnCalc.createCalculator();
+      calc = rpnCalc.pushOperand(calc, 7);
+      calc = rpnCalc.pushOperand(calc, 3);
+      calc = rpnCalc.subtract(calc);
+      
+      // Simulo l'invio di una notifica con il risultato
+      mockNotifyService.sendNotification(`Risultato operazione: ${rpnCalc.getResult(calc)}`);
+      
+      // Verifico che la funzione di notifica sia stata chiamata correttamente
+      expect(mockNotifyService.sendNotification).toHaveBeenCalledTimes(1);
+      expect(mockNotifyService.sendNotification).toHaveBeenCalledWith('Risultato operazione: 4');
+    });
+  });
 }); 
