@@ -42,7 +42,10 @@ const rpnCalcFunctional = __importStar(require("./modules/calculatorFunctional")
 const readline = __importStar(require("readline"));
 const yargs_1 = __importDefault(require("yargs"));
 const helpers_1 = require("yargs/helpers");
-// Parsing degli argomenti da riga di comando
+/**
+ * Parsing degli argomenti da riga di comando tramite yargs
+ * Configura le opzioni disponibili e i loro valori predefiniti
+ */
 const argv = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
     .option('m', {
     alias: 'mode',
@@ -60,109 +63,82 @@ const argv = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
     .alias('help', 'h')
     .argv;
 /**
- * Esegue la calcolatrice in modalità interattiva utilizzando la versione a classi
+ * Crea un adapter per la calcolatrice basata su classi
+ * Incapsula un'istanza di RPNCalculator e la espone tramite l'interfaccia CalculatorAdapter
+ *
+ * @returns {CalculatorAdapter} Un adapter per l'implementazione a classi
  */
-function runClassCalculatorInteractive() {
+const createClassCalculatorAdapter = () => {
     const calculator = new calculator_1.RPNCalculator();
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    console.log('Calcolatrice RPN - Modalità Classe (C)');
-    console.log('Inserisci numeri e operatori (+, -, *, /) uno per riga');
-    console.log('Digita "exit" o "quit" per uscire, "clear" per resettare lo stack');
-    function promptUser() {
-        const currentResult = calculator.getResult();
-        const prompt = currentResult !== undefined ? `[${currentResult}] > ` : '> ';
-        rl.question(prompt, (input) => {
-            const trimmedInput = input.trim().toLowerCase();
-            if (trimmedInput === 'exit' || trimmedInput === 'quit') {
-                console.log('Arrivederci!');
-                rl.close();
-                return;
-            }
-            if (trimmedInput === 'clear') {
-                calculator.reset();
-                console.log('Stack resettato');
-                promptUser();
-                return;
-            }
-            try {
-                calculator.execute(trimmedInput);
-                promptUser();
-            }
-            catch (error) {
-                if (error instanceof Error) {
-                    console.error('Errore:', error.message);
-                }
-                else {
-                    console.error('Errore sconosciuto');
-                }
-                promptUser();
-            }
-        });
-    }
-    promptUser();
-}
+    return {
+        getResult: () => calculator.getResult(),
+        execute: (input) => { calculator.execute(input); },
+        reset: () => calculator.reset(),
+        modeName: 'Classe (C)'
+    };
+};
 /**
- * Esegue la calcolatrice in modalità interattiva utilizzando la versione funzionale
+ * Crea un adapter per la calcolatrice funzionale
+ * Mantiene lo stato della calcolatrice funzionale e lo espone tramite l'interfaccia CalculatorAdapter
+ *
+ * @returns {CalculatorAdapter} Un adapter per l'implementazione funzionale
  */
-function runFunctionalCalculatorInteractive() {
+const createFunctionalCalculatorAdapter = () => {
     let state = rpnCalcFunctional.createCalculator();
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    console.log('Calcolatrice RPN - Modalità Funzionale (F)');
+    return {
+        getResult: () => rpnCalcFunctional.getResult(state),
+        execute: (input) => { state = rpnCalcFunctional.execute(state, input); },
+        reset: () => { state = rpnCalcFunctional.reset(); },
+        modeName: 'Funzionale (F)'
+    };
+};
+/**
+ * Crea un'interfaccia readline per l'input/output interattivo
+ *
+ * @returns {readline.Interface} L'interfaccia readline configurata per stdin/stdout
+ */
+const createReadlineInterface = () => readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+/**
+ * Mostra un messaggio di benvenuto per la modalità interattiva
+ *
+ * @param {string} modeName - Il nome della modalità da visualizzare
+ */
+const printWelcomeMessage = (modeName) => {
+    console.log(`Calcolatrice RPN - Modalità ${modeName}`);
     console.log('Inserisci numeri e operatori (+, -, *, /) uno per riga');
     console.log('Digita "exit" o "quit" per uscire, "clear" per resettare lo stack');
-    function promptUser() {
-        const currentResult = rpnCalcFunctional.getResult(state);
-        const prompt = currentResult !== undefined ? `[${currentResult}] > ` : '> ';
-        rl.question(prompt, (input) => {
-            const trimmedInput = input.trim().toLowerCase();
-            if (trimmedInput === 'exit' || trimmedInput === 'quit') {
-                console.log('Arrivederci!');
-                rl.close();
-                return;
-            }
-            if (trimmedInput === 'clear') {
-                state = rpnCalcFunctional.reset();
-                console.log('Stack resettato');
-                promptUser();
-                return;
-            }
-            try {
-                state = rpnCalcFunctional.execute(state, trimmedInput);
-                promptUser();
-            }
-            catch (error) {
-                if (error instanceof Error) {
-                    console.error('Errore:', error.message);
-                }
-                else {
-                    console.error('Errore sconosciuto');
-                }
-                promptUser();
-            }
-        });
-    }
-    promptUser();
-}
+};
 /**
- * Esegue un'espressione RPN utilizzando la versione a classi
+ * Gestisce l'input dell'utente nella modalità interattiva
+ * Processa comandi speciali come 'exit', 'quit', 'clear' o esegue operazioni della calcolatrice
+ *
+ * @param {readline.Interface} rl - L'interfaccia readline per l'I/O
+ * @param {CalculatorAdapter} adapter - L'adapter della calcolatrice da utilizzare
+ * @param {string} input - L'input dell'utente da processare
+ * @param {Function} promptFn - Funzione di callback per continuare il ciclo di prompt
  */
-function runClassCalculatorExpression(expression) {
-    console.log('Calcolatrice RPN - Modalità Classe (C)');
-    console.log(`Espressione: ${expression}`);
-    const calculator = new calculator_1.RPNCalculator();
-    const tokens = expression.split(/\s+/);
+const handleUserInput = (rl, adapter, input, promptFn) => {
+    const trimmedInput = input.trim().toLowerCase();
+    // Gestione del comando di uscita
+    if (trimmedInput === 'exit' || trimmedInput === 'quit') {
+        console.log('Arrivederci!');
+        rl.close();
+        return;
+    }
+    // Gestione del comando di reset
+    if (trimmedInput === 'clear') {
+        adapter.reset();
+        console.log('Stack resettato');
+        promptFn();
+        return;
+    }
+    // Esecuzione dell'operazione
     try {
-        // Esegui ogni token dell'espressione
-        for (const token of tokens) {
-            calculator.execute(token);
-        }
-        console.log('Risultato:', calculator.getResult());
+        adapter.execute(trimmedInput);
+        promptFn();
     }
     catch (error) {
         if (error instanceof Error) {
@@ -171,48 +147,112 @@ function runClassCalculatorExpression(expression) {
         else {
             console.error('Errore sconosciuto');
         }
+        promptFn();
     }
-}
+};
+/**
+ * Esegue la calcolatrice in modalità interattiva
+ * Crea l'adapter appropriato in base alla modalità e gestisce l'input dell'utente
+ *
+ * @param {string} mode - La modalità da utilizzare ('C' per classe, 'F' per funzionale)
+ */
+const runCalculatorInteractive = (mode) => {
+    // Crea l'adapter in base alla modalità
+    const adapter = mode === 'C'
+        ? createClassCalculatorAdapter()
+        : createFunctionalCalculatorAdapter();
+    const rl = createReadlineInterface();
+    printWelcomeMessage(adapter.modeName);
+    /**
+     * Funzione ricorsiva che mostra il prompt all'utente e gestisce l'input
+     */
+    const promptUser = () => {
+        const currentResult = adapter.getResult();
+        const prompt = currentResult !== undefined ? `[${currentResult}] > ` : '> ';
+        rl.question(prompt, (input) => handleUserInput(rl, adapter, input, promptUser));
+    };
+    // Avvia il ciclo interattivo
+    promptUser();
+};
+/**
+ * Gestisce gli errori in modo uniforme
+ *
+ * @param {unknown} error - L'errore da gestire
+ */
+const handleError = (error) => {
+    if (error instanceof Error) {
+        console.error('Errore:', error.message);
+    }
+    else {
+        console.error('Errore sconosciuto');
+    }
+};
+/**
+ * Elabora un'espressione tokenizzandola ed eseguendo ogni token
+ *
+ * @param {RPNCalculator} calculator - L'istanza della calcolatrice da utilizzare
+ * @param {string} expression - L'espressione RPN da elaborare
+ * @returns {number | undefined} Il risultato dell'espressione o undefined in caso di errore
+ */
+const processExpression = (calculator, expression) => {
+    // Divide l'espressione in token
+    const tokens = expression.split(/\s+/);
+    try {
+        // Esegue ogni token sull'istanza della calcolatrice
+        for (const token of tokens) {
+            calculator.execute(token);
+        }
+        return calculator.getResult();
+    }
+    catch (error) {
+        handleError(error);
+        return undefined;
+    }
+};
+/**
+ * Esegue un'espressione RPN utilizzando la versione a classi
+ *
+ * @param {string} expression - L'espressione RPN da calcolare
+ */
+const runClassCalculatorExpression = (expression) => {
+    console.log('Calcolatrice RPN - Modalità Classe (C)');
+    console.log(`Espressione: ${expression}`);
+    const calculator = new calculator_1.RPNCalculator();
+    const result = processExpression(calculator, expression);
+    if (result !== undefined) {
+        console.log('Risultato:', result);
+    }
+};
 /**
  * Esegue un'espressione RPN utilizzando la versione funzionale
+ *
+ * @param {string} expression - L'espressione RPN da calcolare
  */
-function runFunctionalCalculatorExpression(expression) {
+const runFunctionalCalculatorExpression = (expression) => {
     console.log('Calcolatrice RPN - Modalità Funzionale (F)');
     console.log(`Espressione: ${expression}`);
     try {
+        // Utilizza direttamente la funzione calculateExpression dal modulo funzionale
         const result = rpnCalcFunctional.calculateExpression(expression);
         console.log('Risultato:', result);
     }
     catch (error) {
-        if (error instanceof Error) {
-            console.error('Errore:', error.message);
-        }
-        else {
-            console.error('Errore sconosciuto');
-        }
+        handleError(error);
     }
-}
+};
 // Punto di ingresso principale
 if (require.main === module) {
-    const mode = argv.m;
-    const expression = argv.e;
+    // Estrae gli argomenti con destructuring
+    const { m: mode, e: expression } = argv;
     if (expression) {
         // Modalità non interattiva: calcola l'espressione fornita
-        if (mode === 'C') {
-            runClassCalculatorExpression(expression);
-        }
-        else {
-            runFunctionalCalculatorExpression(expression);
-        }
+        mode === 'C'
+            ? runClassCalculatorExpression(expression)
+            : runFunctionalCalculatorExpression(expression);
     }
     else {
         // Modalità interattiva
-        if (mode === 'C') {
-            runClassCalculatorInteractive();
-        }
-        else {
-            runFunctionalCalculatorInteractive();
-        }
+        runCalculatorInteractive(mode);
     }
 }
 //# sourceMappingURL=main.js.map

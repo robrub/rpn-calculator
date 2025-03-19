@@ -64,25 +64,39 @@ Sono disponibili i seguenti comandi speciali:
 ### Versione a classi
 
 ```typescript
-import { RPNCalculator } from './dist/modules/calculator';
+import { RPNCalculator } from './src/modules/calculator';
 
 const calculator = new RPNCalculator();
 calculator.push_operand(5);
 calculator.push_operand(3);
 calculator.add();
 console.log(calculator.getResult()); // Output: 8
+
+// Oppure usando il metodo execute
+const calculator = new RPNCalculator();
+calculator.execute('5');
+calculator.execute('3');
+calculator.execute('+');
+console.log(calculator.getResult()); // Output: 8
 ```
 
 ### Versione funzionale
 
 ```typescript
-import * as rpnCalc from './dist/modules/calculatorFunctional';
+import * as rpnCalc from './src/modules/calculatorFunctional';
 
 // Utilizzo passo-passo
 let state = rpnCalc.createCalculator();
 state = rpnCalc.pushOperand(state, 5);
 state = rpnCalc.pushOperand(state, 3);
 state = rpnCalc.add(state);
+console.log(rpnCalc.getResult(state)); // Output: 8
+
+// Utilizzo con execute
+let state = rpnCalc.createCalculator();
+state = rpnCalc.execute(state, '5');
+state = rpnCalc.execute(state, '3');
+state = rpnCalc.execute(state, '+');
 console.log(rpnCalc.getResult(state)); // Output: 8
 
 // Calcolo di un'espressione completa
