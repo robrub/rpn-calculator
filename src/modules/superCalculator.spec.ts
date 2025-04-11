@@ -1,4 +1,4 @@
-import { executeTenOperations } from './calculatorTest';
+import { executeTenOperations } from './superCalculator';
 
 // Mock del modulo calculatorFunctional
 jest.mock('./calculatorFunctional', () => ({

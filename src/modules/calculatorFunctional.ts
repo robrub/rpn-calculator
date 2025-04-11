@@ -13,10 +13,13 @@ export const createCalculator = (): CalculatorState => ({
 });
 
 // Aggiunge un operando allo stack
-export const pushOperand = (state: CalculatorState, operand: number): CalculatorState => ({
-  ...state,
-  stack: [...state.stack, operand]
-});
+export const pushOperand = (state: CalculatorState, operand: number): CalculatorState => {
+  console.log('Operando inserito:', operand);
+  return {
+    ...state,
+    stack: [...state.stack, operand]
+  };
+};
 
 // Reinizializza lo stack
 export const reset = (): CalculatorState => ({
@@ -47,8 +50,11 @@ const applyOperation = (
 };
 
 // Somma i due numeri in cima allo stack
-export const add = (state: CalculatorState): CalculatorState => 
-  applyOperation(state, (a, b) => a + b);
+export const add = (state: CalculatorState): CalculatorState => {
+  const result = applyOperation(state, (a, b) => a + b);
+  console.log('Risultato addizione:', getResult(result));
+  return result;
+};
 
 // Sottrae i due numeri in cima allo stack
 export const subtract = (state: CalculatorState): CalculatorState => 
