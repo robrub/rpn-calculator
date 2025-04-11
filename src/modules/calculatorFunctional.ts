@@ -14,7 +14,7 @@ export const createCalculator = (): CalculatorState => ({
 
 // Aggiunge un operando allo stack
 export const pushOperand = (state: CalculatorState, operand: number): CalculatorState => {
-  console.log('Operando inserito:', operand);
+  console.log('Pushing operand:', operand, 'Current stack:', state.stack);
   return {
     ...state,
     stack: [...state.stack, operand]
@@ -36,37 +36,48 @@ const applyOperation = (
   operation: (a: number, b: number) => number
 ): CalculatorState => {
   if (!hasEnoughElements(state, 2)) {
+    console.error('Stack insufficiente:', state.stack);
     throw new Error('Operazione non valida: stack insufficiente');
   }
   
   const stackCopy = [...state.stack];
   const b = stackCopy.pop()!;
   const a = stackCopy.pop()!;
+  const result = operation(a, b);
+  console.log('Operazione:', 'a =', a, 'b =', b, 'risultato =', result, 'Stack prima:', state.stack, 'Stack dopo:', [...stackCopy, result]);
   
   return {
     ...state,
-    stack: [...stackCopy, operation(a, b)]
+    stack: [...stackCopy, result]
   };
 };
 
 // Somma i due numeri in cima allo stack
 export const add = (state: CalculatorState): CalculatorState => {
+  console.log('Eseguo addizione. Stack:', state.stack);
   const result = applyOperation(state, (a, b) => a + b);
-  console.log('Risultato addizione:', getResult(result));
   return result;
 };
 
 // Sottrae i due numeri in cima allo stack
-export const subtract = (state: CalculatorState): CalculatorState => 
-  applyOperation(state, (a, b) => a - b);
+export const subtract = (state: CalculatorState): CalculatorState => {
+  console.log('Eseguo sottrazione. Stack:', state.stack);
+  const result = applyOperation(state, (a, b) => a - b);
+  return result;
+};
 
 // Moltiplica i due numeri in cima allo stack
-export const multiply = (state: CalculatorState): CalculatorState => 
-  applyOperation(state, (a, b) => a * b);
+export const multiply = (state: CalculatorState): CalculatorState => {
+  console.log('Eseguo moltiplicazione. Stack:', state.stack);
+  const result = applyOperation(state, (a, b) => a * b);
+  return result;
+};
 
 // Divide i due numeri in cima allo stack
 export const divide = (state: CalculatorState): CalculatorState => {
+  console.log('Eseguo divisione. Stack:', state.stack);
   if (!hasEnoughElements(state, 2)) {
+    console.error('Stack insufficiente:', state.stack);
     throw new Error('Operazione non valida: stack insufficiente');
   }
   
@@ -75,13 +86,17 @@ export const divide = (state: CalculatorState): CalculatorState => {
   const a = stackCopy.pop()!;
   
   if (b === 0) {
+    console.error('Tentativo di divisione per zero:', 'a =', a, 'b =', b);
     throw new Error('Divisione per zero');
   }
   
-  return {
+  const result = {
     ...state,
     stack: [...stackCopy, a / b]
   };
+  
+  console.log('Divisione:', 'a =', a, 'b =', b, 'risultato =', a / b, 'Stack prima:', state.stack, 'Stack dopo:', result.stack);
+  return result;
 };
 
 // Esegue un'operazione in base all'input

@@ -142,11 +142,12 @@ describe('RPNCalculator Funzionale', () => {
       calc = rpnCalc.add(calc);
       
       // Verifico che il logger sia stato chiamato il numero corretto di volte
-      expect(mockLogger).toHaveBeenCalledTimes(3);
+      expect(mockLogger).toHaveBeenCalledTimes(4);
       // Verifico che il logger sia stato chiamato con argomenti specifici
-      expect(mockLogger).toHaveBeenCalledWith('Operando inserito:', 10);
-      expect(mockLogger).toHaveBeenCalledWith('Operando inserito:', 5);
-      expect(mockLogger).toHaveBeenCalledWith('Risultato addizione:', 15);
+      expect(mockLogger).toHaveBeenCalledWith('Pushing operand:', 10, 'Current stack:', []);
+      expect(mockLogger).toHaveBeenCalledWith('Pushing operand:', 5, 'Current stack:', [10]);
+      expect(mockLogger).toHaveBeenCalledWith('Eseguo addizione. Stack:', [10, 5]);
+      expect(mockLogger).toHaveBeenCalledWith('Operazione:', 'a =', 10, 'b =', 5, 'risultato =', 15, 'Stack prima:', [10, 5], 'Stack dopo:', [15]);
       
       // Ripristino la funzione originale
       console.log = originalConsoleLog;

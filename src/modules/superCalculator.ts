@@ -50,10 +50,10 @@ export const executeTenOperations = (): number[] => {
 
   // Operazione 6: 100 / (5 + 5)
   state = createCalculator();
+  state = pushOperand(state, 100);
   state = pushOperand(state, 5);
   state = pushOperand(state, 5);
   state = add(state);
-  state = pushOperand(state, 100);
   state = divide(state);
   results.push(getResult(state)!);
 
@@ -62,9 +62,15 @@ export const executeTenOperations = (): number[] => {
   state = pushOperand(state, 10);
   state = pushOperand(state, 2);
   state = subtract(state);
+  let temp = getResult(state)!;
+  state = createCalculator();
   state = pushOperand(state, 3);
   state = pushOperand(state, 1);
   state = add(state);
+  let temp2 = getResult(state)!;
+  state = createCalculator();
+  state = pushOperand(state, temp);
+  state = pushOperand(state, temp2);
   state = multiply(state);
   results.push(getResult(state)!);
 
@@ -73,6 +79,9 @@ export const executeTenOperations = (): number[] => {
   state = pushOperand(state, 15);
   state = pushOperand(state, 3);
   state = divide(state);
+  let temp3 = getResult(state)!;
+  state = createCalculator();
+  state = pushOperand(state, temp3);
   state = pushOperand(state, 2);
   state = add(state);
   results.push(getResult(state)!);
@@ -82,9 +91,15 @@ export const executeTenOperations = (): number[] => {
   state = pushOperand(state, 8);
   state = pushOperand(state, 2);
   state = multiply(state);
+  let temp4 = getResult(state)!;
+  state = createCalculator();
   state = pushOperand(state, 6);
   state = pushOperand(state, 2);
   state = divide(state);
+  let temp5 = getResult(state)!;
+  state = createCalculator();
+  state = pushOperand(state, temp4);
+  state = pushOperand(state, temp5);
   state = subtract(state);
   results.push(getResult(state)!);
 
@@ -93,9 +108,15 @@ export const executeTenOperations = (): number[] => {
   state = pushOperand(state, 4);
   state = pushOperand(state, 6);
   state = add(state);
+  let temp6 = getResult(state)!;
+  state = createCalculator();
   state = pushOperand(state, 10);
   state = pushOperand(state, 5);
   state = subtract(state);
+  let temp7 = getResult(state)!;
+  state = createCalculator();
+  state = pushOperand(state, temp6);
+  state = pushOperand(state, temp7);
   state = multiply(state);
   results.push(getResult(state)!);
 
