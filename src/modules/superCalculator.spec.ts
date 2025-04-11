@@ -60,6 +60,7 @@ describe('executeTenOperations', () => {
     // Verifica che createCalculator sia stato chiamato
     const { createCalculator } = require('./calculatorFunctional');
     expect(createCalculator).toHaveBeenCalled();
+    expect(createCalculator).toHaveBeenCalledTimes(17);
 
     // Verifica che pushOperand sia stato chiamato
     const { pushOperand } = require('./calculatorFunctional');
